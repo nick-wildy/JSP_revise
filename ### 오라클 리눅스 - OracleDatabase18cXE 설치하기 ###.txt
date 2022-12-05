@@ -1,0 +1,120 @@
+
+
+	<Oracle Linux 7.9 64bit - Install Oracle Database 18c XE>
+
+
+0) 오라클 리눅스 ISO 이미지를 먼저 다운로드 받자
+https://yum.oracle.com/ISOS/OracleLinux/OL7/u9/x86_64/OracleLinux-R7-U9-Server-x86_64-dvd.iso
+
+1) 오라클 리눅스는 RedHat 계열의 리눅스이며, Oracle Database 를 설치 및 운용하기 적합한 리눅스이다
+   오라클 리눅스 8 이상의 버전에는 18c를 설치하지 않는다
+   반드시 오라클 7버전으로 다운로드 받거나, 오라클 리눅스8이라면 오라클 데이터베이스 19c 이상을 사용한다
+   (하지만 개인이 무료로 사용가능한 XE 버전은 11g, 12c, 18c까지 있다)
+
+============================================================================================
+	Oracle Linux		Oracle Database		Oracle Database XE
+	6			11g			11g
+	7			12c, 18c		12c, 18c
+	8			19c, 21c		-
+============================================================================================
+
+
+2) 설치 시에 [서버 - GUI] 형태로 설치하자
+
+3) 자바 설치, 오라클 설치 사전 준비, 오라클 데이터베이스 설치
+
+rm -rf /etc/sysconfig/network-scripts/ifcfg-ens33
+echo DEVICE=ens33 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo BOOTPROTO=static >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo IPADDR=192.168.1.100 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo NETMASK=255.255.255.0 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo GATEWAY=192.168.1.2 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo ONBOOT=yes >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo DNS1=168.126.63.1 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+echo DNS2=8.8.8.8 >> /etc/sysconfig/network-scripts/ifcfg-ens33
+
+service network restart && echo OK
+
+yum install java-1.8.0-openjdk-devel.x86_64 -y && javac -version
+
+curl -o oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
+
+yum -y localinstall oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm
+
+wget https://download.oracle.com/otn-pub/otn_software/db-express/oracle-database-xe-18c-1.0-1.x86_64.rpm
+
+yum -y localinstall oracle-database-xe-18c-1.0-1.x86_64.rpm 
+
+service oracle-xe-18c configure 
+============================================================================================
+
+firewall-cmd --permanent --zone=public --add-port=1521/tcp
+firewall-cmd --reload
+firewall-cmd --list-all
+
+rm -rf /home/oracle/prepareAccount.sql
+echo "create user c##itbank identified by it;" >> /home/oracle/prepareAccount.sql
+echo "grant connect, resource, dba to c##itbank;" >> /home/oracle/prepareAccount.sql
+echo "alter session set container=XEPDB1;" >> /home/oracle/prepareAccount.sql
+echo "alter user hr account unlock;" >> /home/oracle/prepareAccount.sql
+echo "alter user hr identified by hr;" >> /home/oracle/prepareAccount.sql
+echo "grant create session to hr;" >> /home/oracle/prepareAccount.sql
+echo "grant connect, resource to hr;" >> /home/oracle/prepareAccount.sql
+echo "commit;" >> /home/oracle/prepareAccount.sql
+echo "" >> /home/oracle/.bash_profile
+echo "### 오라클 실행 환경 변수 설정 ###" >> /home/oracle/.bash_profile
+echo "export ORACLE_HOME=/opt/oracle/product/18c/dbhomeXE" >> /home/oracle/.bash_profile
+echo "export ORACLE_SID=XE" >> /home/oracle/.bash_profile
+echo "export ORAENV_ASK=NO" >> /home/oracle/.bash_profile
+echo "export NLS_LANG=AMERICAN_AMERICA.AL32UTF8" >> /home/oracle/.bash_profile
+echo "export PATH=.:$ORACLE_HOME/bin:$PATH" >> /home/oracle/.bash_profile
+echo oracle | passwd --stdin oracle
+
+su - oracle
+. oraenv
+sqlplus sys/oracle@//localhost:1521/XE as sysdba < /home/oracle/prepareAccount.sql
+
+exit
+
+sed -i '7s/enforcing/disabled/' /etc/selinux/config
+systemctl enable oracle-xe-18c.service && init 6
+
+============================================================================================
+
+잘 설치되었는지 확인
+
+- 먼저 root 계정으로 접속해서 터미널 열기
+
+su - oracle
+. oraenv
+sqlplus c##itbank/it@192.168.1.100:1521/xe
+
+SQL> show user;
+USER is C##ITBANK.
+
+SQL> select banner from v$version;
+Oracle Database 18c Express Edition
+
+SQL> exit
+
+[oracle@localhost ~]# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,57 @@
+databass 에서 자주 사용하는 DML
+
+select [columnName...] form [tableName]
+-select * from product'
+-select idx, name from product;
+-select name, price from product;
+
+-- 모든 컬럼의 값을 순서대로 작성할 경우
+insert into [tableName] values(value1, value2 ...);
+insert into product values (6, '테스트상품', 10000, 'test.jpg');
+
+-- 특정 컬럼값을 작성할 경우
+insert into[tableName]([columnName...] values(value1, value2...);
+insert into product (idx,name) values (7, '테스트상품');
+
+
+update [tableName] set [columnName]=value2 ... where [condition]
+	update product set price =price-100 where 1=1;
+	-- (모든 레코드에 대하여 price 컬럼의 값을 100만큼 빼서 다시 저장한다)
+
+delete (from) [tableName] where [condition]
+delete product where idx=5;
+--(idx가 5번인 레코드를 삭제한다. from이 생략)
+
+delete from product;
+--(product의 레코드를 삭제한다, 조건을 명시하지 않으면 모든 레코드를 대상으로한다)
+
+
+-------------------------------------------------------------------------------------------------
+select는 저장된 데이터를 relation 형식으로 반환한다.
+자바에서는 select를 수행한 결과를 ResultSet 클래스로 받는다
+
+ResultSet rs =  stmt.executeQuery(String sql); 	// select
+
+insert, update, delete는 sql에 의해 영향을 받은 레코드의 수를 반환한다.
+자바에서는 insert/update/delete를 수행한 결과를 int로 받는다.
+
+int row = stmt.executeUpdate(String sql); 	// insert/update/delete
+-------------------------------------------------------------------------------------------------
+
+String sql = "insert into product values(7, '테스트상품', 15000, 'test2.jpg)";
+
+public int insertProduct(Product ob){
+
+//	1) 객체의 값을 사이사이에 넣어서 sql을 만들면 코드가 굉장히 복잡해지다.
+//	String sql ="insert into product values(" + ob.getIdx() + ", '" + ob.getName()+";
+
+//	2) 임시방편으로 String.format()을 이용해서 사용할수있으나, 여전히 자료형에따른 따옴표처리가 힘들다.
+	String sql = "insert into product values(%d, '%s', %d, '%s')";
+	sql = String.format(sql,ob.getIdx(),ob.getName(), ob.getPrice(), ob.getImgPath());
+
+	3) 이런 문제를 해결하기 위해 등장한 클래스가 preparedStatement이다.
+//	PreparedStatement는 statement의 서브클래스이다(상속관계)
+	String sql = "insert into product values(?, ?, ?, ?)";
+	PreparedStatement pstmt = conn.PreparedStatement(sql);
+	pstmt.setInt(1,ob.getIdx());	// 정수를 넣으면 따옴표를 붙이지않는다.
+	pstmt.setString(2,ob.getName));	// 문자열을 넣으면 알아서 양쪽에 홑따옴표를 붙여준다.

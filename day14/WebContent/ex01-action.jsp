@@ -53,7 +53,7 @@
 	// 파일은 웹 서버 혹은 별도의 서버에 저장하지만, DB에는 파일의 이름을 문자열로 기록해야 하기 때문에
 	// 파일도 확보해야 하고, 파일이름도 확보해야 한다
 	
-	// request 내장객체에서는 getParameter("name") 을 호출해도, 값을 받을 수 없다
+	// request 내장객체에서는 getParameter("name") 을 호출해도, 값을 받을 수 없다 . !
 	String _name = request.getParameter("name");
 %>
 <h3><%=mpRequest.getFile("uploadFile") %></h3>

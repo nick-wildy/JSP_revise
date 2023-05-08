@@ -1,0 +1,24 @@
+create table member_tbl_02(
+ custno number not null,
+ custname varchar2(20),
+ phone varchar2(13),
+ address varchar2(60),
+ joindate date,
+ grade char(1),
+ city char(2)
+);
+
+create table money_tbl_02(
+custno number not null ,
+salenol number not null,
+pcost number,
+amount number,
+price number,
+pcode varchar2(4),
+sdate date,
+CONSTRAINT money_tbl_02_PK PRIMARY key
+(
+custno,
+salenol)
+ENABLE
+);
